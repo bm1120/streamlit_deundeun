@@ -164,6 +164,7 @@ with col1:
     # 지도 생성
     fig = go.Figure()
     
+    # 건물 마커 추가
     fig.add_trace(go.Scattermapbox(
         lat=filtered_data.x,
         lon=filtered_data.y,
@@ -185,6 +186,21 @@ with col1:
         hoverinfo='text'
     ))
     
+    # 회사 위치가 있으면 지도에 추가
+    if company_x and company_y:
+        fig.add_trace(go.Scattermapbox(
+            lat=[company_x],
+            lon=[company_y],
+            mode='markers+text',
+            marker=dict(
+                size=25,
+                symbol='star',
+                color='red'
+            ),
+            text=['회사'],
+            name='회사 위치'
+        ))
+    
     fig.update_layout(
         mapbox=dict(
             style=map_style,
@@ -198,7 +214,6 @@ with col1:
         height=700
     )
     
-    # plotly_chart 대신 plotly_events 사용
     selected_point = plotly_events(fig, click_event=True, override_height=700)
 
 with col2:
