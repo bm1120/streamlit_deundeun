@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+from streamlit_plotly_events import plotly_events
 
 # 페이지 설정
 st.set_page_config(
@@ -68,14 +69,6 @@ with col1:
         (final['expected_time'] <= max_time)
     ]
     
-    # 건물 선택 드롭다운
-    selected_number = st.selectbox(
-        "건물 번호 선택",
-        options=filtered_data['번호'].tolist(),
-        format_func=lambda x: f"건물 {x}번",
-        key="building_selector"
-    )
-    
     # 지도 생성
     fig = go.Figure()
     
@@ -113,12 +106,15 @@ with col1:
         height=700
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    # plotly_chart 대신 plotly_events 사용
+    selected_point = plotly_events(fig, click_event=True, override_height=700)
 
 with col2:
     st.subheader("평면구조도")
     
-    if selected_number:
+    # 클릭된 포인트가 있으면 해당 정보 표시
+    if selected_point:
+        selected_number = int(selected_point[0]['text'])  # 클릭된 마커의 번호
         selected_row = final[final['번호'] == selected_number].iloc[0]
         
         # 이미지 표시

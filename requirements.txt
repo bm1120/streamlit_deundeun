@@ -5,3 +5,4 @@ streamlit_folium
 numpy
 pandas
 plotly
+streamlit-plotly-events
