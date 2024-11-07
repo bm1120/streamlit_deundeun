@@ -76,6 +76,7 @@ with col1:
         hoverinfo='text'
     ))
     
+    # 클릭 이벤트 활성화
     fig.update_layout(
         mapbox=dict(
             style=map_style,
@@ -83,10 +84,18 @@ with col1:
             center=dict(lat=filtered_data.x.mean(), lon=filtered_data.y.mean())
         ),
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        height=700
+        height=700,
+        clickmode='event+select'  # 클릭 이벤트 활성화
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    # 플롯 표시 및 클릭 이벤트 캡처
+    selected_point = st.plotly_chart(fig, use_container_width=True)
+    
+    if selected_point:
+        click_data = selected_point.get('clickData')
+        if click_data:
+            point_number = int(click_data['points'][0]['text'])
+            st.session_state['selected_point'] = point_number
 
 with col2:
     st.title('평면구조도')
