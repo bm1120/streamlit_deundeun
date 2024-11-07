@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from streamlit_plotly_events import plotly_events
+import requests
+import numpy as np
+
+kakao_api_key = st.secrets["api_keys"]["kakao"]
 
 # 페이지 설정
 st.set_page_config(
@@ -56,6 +60,94 @@ with st.sidebar:
         options=['open-street-map', 'carto-positron', 
                 'carto-darkmatter', 'stamen-terrain']
     )
+    
+    # 회사 위치 설정
+    st.header("회사 위치 설정")
+    
+    # 회사 주소 입력
+    company_address = st.text_input(
+        "회사 주소",
+        value="서울특별시 강남구 테헤란로 427"  # 기본값 설정
+    )
+    
+    # 주소 -> 좌표 변환 함수
+    @st.cache_data
+    def get_coordinates(address):
+        url = f"https://dapi.kakao.com/v2/local/search/address.json"
+        headers = {"Authorization": f"KakaoAK {kakao_api_key}"}
+        params = {"query": address}
+        
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            result = response.json()
+            if result["documents"]:
+                x = float(result["documents"][0]["y"])  # 위도
+                y = float(result["documents"][0]["x"])  # 경도
+                return x, y
+        return None, None
+    
+    # 좌표 계산
+    company_x, company_y = get_coordinates(company_address)
+    
+    if company_x and company_y:
+        st.success("회사 위치가 확인되었습니다.")
+        
+        # 대중교통 시간 계산 함수
+        @st.cache_data
+        def calculate_transit_time(origin_x, origin_y, dest_x, dest_y):
+            url = "https://apis-navi.kakaomobility.com/v1/directions"
+            headers = {"Authorization": f"KakaoAK {kakao_api_key}"}
+            params = {
+                "origin": f"{origin_y},{origin_x}",
+                "destination": f"{dest_y},{dest_x}",
+                "priority": "TIME",
+                "car_fuel": "GASOLINE",
+                "car_hipass": False,
+                "alternatives": False,
+                "road_details": False
+            }
+            
+            try:
+                response = requests.get(url, headers=headers, params=params)
+                if response.status_code == 200:
+                    result = response.json()
+                    # 이동 시간을 분 단위로 반환
+                    return result['routes'][0]['summary']['duration'] / 60
+                return None
+            except:
+                return None
+
+        # 모든 건물에 대해 새로운 예상 시간 계산
+        @st.cache_data
+        def update_transit_times(df, comp_x, comp_y):
+            df = df.copy()
+            df['expected_time'] = df.apply(
+                lambda row: calculate_transit_time(
+                    comp_x, comp_y, 
+                    row['x'], row['y']
+                ), axis=1
+            )
+            return df
+        
+        # 데이터 업데이트
+        final = update_transit_times(final, company_x, company_y)
+        
+        # 회사 위치 지도에 표시
+        fig.add_trace(go.Scattermapbox(
+            lat=[company_x],
+            lon=[company_y],
+            mode='markers+text',
+            marker=dict(
+                size=25,
+                symbol='star',
+                color='red'
+            ),
+            text=['회사'],
+            name='회사 위치'
+        ))
+        
+    else:
+        st.error("회사 주소를 확인할 수 없습니다. 정확한 주소를 입력해주세요.")
 
 # 메인 레이아웃
 col1, col2 = st.columns([6, 4])
