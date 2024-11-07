@@ -114,13 +114,14 @@ with col2:
     
     # 클릭된 포인트가 있으면 해당 정보 표시
     if selected_point:
-        selected_number = int(selected_point[0]['text'])  # 클릭된 마커의 번호
-        selected_row = final[final['번호'] == selected_number].iloc[0]
+        # 클릭된 포인트의 인덱스로 데이터 접근
+        point_idx = selected_point[0]['pointIndex']
+        selected_row = filtered_data.iloc[point_idx]
         
         # 이미지 표시
         image_urls = {f'{num:03d}': img_url 
                      for idx, num, img_url in final.filter(regex='번호|img').itertuples()}
-        if image_url := image_urls.get(f'{selected_number:03d}'):
+        if image_url := image_urls.get(f'{int(selected_row["번호"]):03d}'):
             st.image(image_url)
         
         # 건물 상세 정보
@@ -134,4 +135,4 @@ with col2:
         st.write(f"신청자수: {selected_row['신청자수']}명")
         st.markdown(f"[로드뷰 보기](https://map.kakao.com/link/roadview/{selected_row['x']},{selected_row['y']})")
     else:
-        st.write("건물을 선택해주세요.")
+        st.write("지도에서 건물을 선택해주세요.")
