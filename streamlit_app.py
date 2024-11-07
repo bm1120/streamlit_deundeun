@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from streamlit_plotly_events import plotly_events
 
 # 페이지 설정
 st.set_page_config(
@@ -15,6 +14,10 @@ def load_data():
     return pd.read_csv('data/final.csv').copy().sort_values('번호')
 
 final = load_data()
+
+# 세션 스테이트 초기화
+if 'selected_number' not in st.session_state:
+    st.session_state.selected_number = None
 
 # 사이드바 컨트롤
 with st.sidebar:
@@ -65,6 +68,14 @@ with col1:
         (final['expected_time'] <= max_time)
     ]
     
+    # 건물 선택 드롭다운
+    selected_number = st.selectbox(
+        "건물 번호 선택",
+        options=filtered_data['번호'].tolist(),
+        format_func=lambda x: f"건물 {x}번",
+        key="building_selector"
+    )
+    
     # 지도 생성
     fig = go.Figure()
     
@@ -102,15 +113,12 @@ with col1:
         height=700
     )
     
-    # 클릭 이벤트를 위한 plotly_events 사용
-    selected_point = plotly_events(fig, click_event=True)
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     st.subheader("평면구조도")
     
-    # 선택된 건물 정보 표시
-    if selected_point:
-        selected_number = int(selected_point[0]['text'])
+    if selected_number:
         selected_row = final[final['번호'] == selected_number].iloc[0]
         
         # 이미지 표시
@@ -130,4 +138,4 @@ with col2:
         st.write(f"신청자수: {selected_row['신청자수']}명")
         st.markdown(f"[로드뷰 보기](https://map.kakao.com/link/roadview/{selected_row['x']},{selected_row['y']})")
     else:
-        st.write("지도에서 건물을 선택해주세요.")
+        st.write("건물을 선택해주세요.")
