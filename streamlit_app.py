@@ -89,13 +89,17 @@ with col1:
     )
     
     # 플롯 표시 및 클릭 이벤트 캡처
-    selected_point = st.plotly_chart(fig, use_container_width=True)
+    clicked_point = st.plotly_chart(
+        fig, 
+        use_container_width=True,
+        key="map",  # 고유 키 추가
+        return_value=True  # 클릭 이벤트 반환 활성화
+    )
     
-    if selected_point:
-        click_data = selected_point.get('clickData')
-        if click_data:
-            point_number = int(click_data['points'][0]['text'])
-            st.session_state['selected_point'] = point_number
+    # 클릭 이벤트 처리
+    if clicked_point and 'points' in clicked_point['points'][0]:
+        point_number = int(clicked_point['points'][0]['text'])
+        st.session_state['selected_point'] = point_number
 
 with col2:
     st.title('평면구조도')
