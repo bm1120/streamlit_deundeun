@@ -67,7 +67,7 @@ with st.sidebar:
     # 회사 주소 입력
     company_address = st.text_input(
         "회사 주소",
-        value="서울특별시 강남구 테헤란로 427"  # 기본값 설정
+        value="서울특별시 강남구 테헤란로 427"
     )
     
     # 주소 -> 좌표 변환 함수
@@ -111,7 +111,6 @@ with st.sidebar:
                 response = requests.get(url, headers=headers, params=params)
                 if response.status_code == 200:
                     result = response.json()
-                    # 이동 시간을 분 단위로 반환
                     return result['routes'][0]['summary']['duration'] / 60
                 return None
             except:
@@ -131,21 +130,6 @@ with st.sidebar:
         
         # 데이터 업데이트
         final = update_transit_times(final, company_x, company_y)
-        
-        # 회사 위치 지도에 표시
-        fig.add_trace(go.Scattermapbox(
-            lat=[company_x],
-            lon=[company_y],
-            mode='markers+text',
-            marker=dict(
-                size=25,
-                symbol='star',
-                color='red'
-            ),
-            text=['회사'],
-            name='회사 위치'
-        ))
-        
     else:
         st.error("회사 주소를 확인할 수 없습니다. 정확한 주소를 입력해주세요.")
 
@@ -201,6 +185,7 @@ with col1:
             name='회사 위치'
         ))
     
+    # 지도 레이아웃 설정
     fig.update_layout(
         mapbox=dict(
             style=map_style,
