@@ -52,7 +52,11 @@ with col1:
         (final['expected_time'] <= max_time)
     ]
     
-    # 지도 생성
+    # 초기 session_state 설정
+    if 'selected_point' not in st.session_state:
+        st.session_state.selected_point = None
+
+    # 지도 생성 및 표시
     fig = go.Figure()
     
     fig.add_trace(go.Scattermapbox(
@@ -75,8 +79,7 @@ with col1:
         ),
         hoverinfo='text'
     ))
-    
-    # 클릭 이벤트 활성화
+
     fig.update_layout(
         mapbox=dict(
             style=map_style,
@@ -84,30 +87,28 @@ with col1:
             center=dict(lat=filtered_data.x.mean(), lon=filtered_data.y.mean())
         ),
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        height=700,
-        clickmode='event+select'  # 클릭 이벤트 활성화
+        height=700
     )
+
+    # 지도 아래에 선택 박스 추가
+    st.plotly_chart(fig, use_container_width=True)
     
-    # 플롯 표시 및 클릭 이벤트 캡처
-    clicked_point = st.plotly_chart(
-        fig, 
-        use_container_width=True,
-        key="map",  # 고유 키 추가
-        return_value=True  # 클릭 이벤트 반환 활성화
+    selected_number = st.selectbox(
+        "건물 선택",
+        options=filtered_data['번호'].tolist(),
+        format_func=lambda x: f"건물 번호: {x}",
+        key="building_selector"
     )
-    
-    # 클릭 이벤트 처리
-    if clicked_point and 'points' in clicked_point['points'][0]:
-        point_number = int(clicked_point['points'][0]['text'])
-        st.session_state['selected_point'] = point_number
+
+    if selected_number:
+        st.session_state.selected_point = selected_number
 
 with col2:
     st.title('평면구조도')
     
     # 선택된 마커 정보 표시
-    selected_point = st.session_state.get('selected_point', None)
-    if selected_point:
-        row = final[final['번호'] == selected_point].iloc[0]
+    if st.session_state.selected_point:
+        row = final[final['번호'] == st.session_state.selected_point].iloc[0]
         
         # 이미지 표시
         image_url = f"이미지URL_{row['번호']:03d}"  # 실제 이미지 URL로 수정 필요
