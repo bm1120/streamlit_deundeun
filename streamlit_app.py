@@ -99,7 +99,7 @@ with col1:
     lon_center = (filtered_data.y.max() + filtered_data.y.min()) / 2
     
     # 경도값을 오른쪽으로 조정 (0.02 정도 더해줌)
-    lon_center += 0.1
+    lon_center += 0.2
     
     # 지도 레이아웃 설정
     fig.update_layout(
