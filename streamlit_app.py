@@ -94,18 +94,22 @@ with col1:
         hoverinfo='text'
     ))
     
+    # 데이터의 경계값 계산
+    lat_center = (filtered_data.x.max() + filtered_data.x.min()) / 2
+    lon_center = (filtered_data.y.max() + filtered_data.y.min()) / 2
+
     # 지도 레이아웃 설정
     fig.update_layout(
         mapbox=dict(
             style=map_style,
             zoom=9,
             center=dict(
-                lat=final.x.median(), 
-                lon=final.y.median()
+                lat=lat_center,  # 경계 상자의 중심 위도
+                lon=lon_center   # 경계 상자의 중심 경도
             )
         ),
         margin={"r":0,"t":0,"l":0,"b":0},
-        height=400,
+        height=600,
         width=1000,
         autosize=False
     )
