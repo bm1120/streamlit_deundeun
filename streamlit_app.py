@@ -105,16 +105,16 @@ with col1:
             )
         ),
         margin={"r":0,"t":0,"l":0,"b":0},
-        height=700,
-        width=1000,  # 고정 너비 설정
-        autosize=False  # 자동 크기 조정 비활성화
+        height=600,
+        width=1000,
+        autosize=False
     )
     
-    # plotly_events 설정 변경
+    # plotly_events 설정
     selected_point = plotly_events(
         fig, 
         click_event=True,
-        override_width="100%"  # 컨테이너 너비에 맞춤
+        override_width="100%"
     )
 
 with col2:
