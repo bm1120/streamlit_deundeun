@@ -102,7 +102,7 @@ with col1:
     fig.update_layout(
         mapbox=dict(
             style=map_style,
-            zoom=10,
+            zoom=9,
             center=dict(
                 lat=lat_center,
                 lon=lon_center
