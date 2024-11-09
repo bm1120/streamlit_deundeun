@@ -105,7 +105,7 @@ with col1:
             )
         ),
         margin={"r":0,"t":0,"l":0,"b":0},
-        height=600,
+        height=400,
         width=1000,
         autosize=False
     )
