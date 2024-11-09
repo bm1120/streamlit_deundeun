@@ -97,15 +97,18 @@ with col1:
     # 데이터의 경계값 계산
     lat_center = (filtered_data.x.max() + filtered_data.x.min()) / 2
     lon_center = (filtered_data.y.max() + filtered_data.y.min()) / 2
-
+    
+    # 경도값을 오른쪽으로 조정 (0.02 정도 더해줌)
+    lon_center += 0.02
+    
     # 지도 레이아웃 설정
     fig.update_layout(
         mapbox=dict(
             style=map_style,
-            zoom=9,
+            zoom=10,
             center=dict(
                 lat=lat_center,
-                lon=lon_center
+                lon=lon_center  # 조정된 경도값 적용
             )
         ),
         margin={"r":0,"t":0,"l":0,"b":0},
