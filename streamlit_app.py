@@ -100,8 +100,8 @@ with col1:
             style=map_style,
             zoom=9,
             center=dict(
-                lat=filtered_data.x.median(), 
-                lon=filtered_data.y.median()
+                lat=final.x.median(), 
+                lon=final.y.median()
             )
         ),
         margin={"r":0,"t":0,"l":0,"b":0},
