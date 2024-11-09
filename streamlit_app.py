@@ -57,8 +57,8 @@ with st.sidebar:
                 'carto-darkmatter', 'stamen-terrain']
     )
 
-# 메인 레이아웃
-col1, col2 = st.columns([7, 3])
+# 메인 레이아웃 비율 조정
+col1, col2 = st.columns([7, 3], gap="small")
 
 with col1:
     st.subheader("지도")
@@ -105,10 +105,17 @@ with col1:
             )
         ),
         margin={"r":0,"t":0,"l":0,"b":0},
-        height=700
+        height=700,
+        width=1000,  # 고정 너비 설정
+        autosize=False  # 자동 크기 조정 비활성화
     )
     
-    selected_point = plotly_events(fig, click_event=True, override_height=700)
+    # plotly_events 설정 변경
+    selected_point = plotly_events(
+        fig, 
+        click_event=True,
+        override_width="100%"  # 컨테이너 너비에 맞춤
+    )
 
 with col2:
     st.subheader("평면구조도")
