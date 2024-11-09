@@ -58,7 +58,7 @@ with st.sidebar:
     )
 
 # 메인 레이아웃
-col1, col2 = st.columns([6, 4])
+col1, col2 = st.columns([7, 3])
 
 with col1:
     st.subheader("지도")
