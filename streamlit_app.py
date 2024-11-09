@@ -102,10 +102,10 @@ with col1:
     fig.update_layout(
         mapbox=dict(
             style=map_style,
-            zoom=9,
+            zoom=10,
             center=dict(
-                lat=lat_center,  # 경계 상자의 중심 위도
-                lon=lon_center   # 경계 상자의 중심 경도
+                lat=lat_center,
+                lon=lon_center
             )
         ),
         margin={"r":0,"t":0,"l":0,"b":0},
