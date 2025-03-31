@@ -125,19 +125,13 @@ with col1:
     )
 
 with col2:
-    st.subheader("평면구조도")
+    st.subheader("건물 상세 정보")
     
     # 클릭된 포인트가 있으면 해당 정보 표시
     if selected_point:
         # 클릭된 포인트의 인덱스로 데이터 접근
         point_idx = selected_point[0]['pointIndex']
         selected_row = filtered_data.iloc[point_idx]
-        
-        # 이미지 표시
-        image_urls = {f'{num:03d}': img_url 
-                     for idx, num, img_url in final.filter(regex='번호|img').itertuples()}
-        if image_url := image_urls.get(f'{int(selected_row["번호"]):03d}'):
-            st.image(image_url)
         
         # 건물 상세 정보
         st.write(f"번호: {selected_row['번호']}")
