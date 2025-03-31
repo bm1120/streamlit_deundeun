@@ -12,9 +12,27 @@ st.set_page_config(
 # 데이터 로드
 @st.cache_data
 def load_data():
-    return pd.read_csv('data/final.csv').copy().sort_values('번호')
+    try:
+        df = pd.read_csv('data/final.csv').copy().sort_values('번호')
+        print("\n=== 데이터 로딩 정보 ===")
+        print(f"데이터 크기: {df.shape}")
+        print("\n=== 데이터 컬럼 목록 ===")
+        print(df.columns.tolist())
+        print("\n=== 데이터 샘플 ===")
+        print(df[['번호', '주소', 'deposit', 'expected_time']].head())
+        return df
+    except Exception as e:
+        print(f"\n=== 데이터 로딩 에러 ===")
+        print(f"에러 메시지: {str(e)}")
+        st.error(f"데이터 로딩 중 오류가 발생했습니다: {str(e)}")
+        return pd.DataFrame()  # 빈 데이터프레임 반환
 
 final = load_data()
+
+# 데이터가 비어있는지 확인
+if final.empty:
+    st.error("데이터를 불러올 수 없습니다. 'data/final.csv' 파일이 올바른 위치에 있는지 확인해주세요.")
+    st.stop()
 
 # 세션 스테이트 초기화
 if 'selected_number' not in st.session_state:
