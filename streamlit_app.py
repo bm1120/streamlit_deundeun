@@ -69,6 +69,16 @@ with col1:
         (final['expected_time'] <= max_time)
     ]
     
+    # 디버깅을 위한 데이터 출력
+    print("\n=== 필터링된 데이터 정보 ===")
+    print(f"전체 데이터 수: {len(final)}")
+    print(f"필터링된 데이터 수: {len(filtered_data)}")
+    print("\n=== 필터링된 데이터 샘플 ===")
+    print(filtered_data[['번호', '주소', 'deposit', 'expected_time']].head())
+    print("\n=== 필터링 조건 ===")
+    print(f"최대 보증금: {max_deposit}만원")
+    print(f"최대 통근시간: {max_time}분")
+    
     # 지도 생성
     fig = go.Figure()
     
