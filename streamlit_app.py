@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-from streamlit_plotly_events import plotly_events
+import folium
+from streamlit_folium import st_folium
+import branca.colormap as cm
 
 # 페이지 설정
 st.set_page_config(
@@ -34,10 +35,6 @@ if final.empty:
     st.error("데이터를 불러올 수 없습니다. 'data/final.csv' 파일이 올바른 위치에 있는지 확인해주세요.")
     st.stop()
 
-# 세션 스테이트 초기화
-if 'selected_number' not in st.session_state:
-    st.session_state.selected_number = None
-
 # 사이드바 컨트롤
 with st.sidebar:
     st.header("필터 설정")
@@ -69,107 +66,123 @@ with st.sidebar:
         index=3
     )
     
-    map_style = st.radio(
+    map_style = st.selectbox(
         "지도 스타일",
-        options=['open-street-map', 'carto-positron', 
-                'carto-darkmatter', 'stamen-terrain']
+        options=['OpenStreetMap', 'Stamen Terrain', 'Stamen Toner', 'CartoDB positron', 'CartoDB dark_matter'],
+        index=0
     )
 
-# 메인 레이아웃 비율 조정
-col1, col2 = st.columns([7, 3], gap="small")
+# 전체 화면에 지도 표시
+st.subheader("든든전세주택 위치 지도")
 
-with col1:
-    st.subheader("지도")
+# 데이터 필터링
+filtered_data = final[
+    (final['deposit'] <= max_deposit) & 
+    (final['expected_time'] <= max_time)
+]
+
+# 디버깅을 위한 데이터 출력
+print("\n=== 필터링된 데이터 정보 ===")
+print(f"전체 데이터 수: {len(final)}")
+print(f"필터링된 데이터 수: {len(filtered_data)}")
+print("\n=== 필터링된 데이터 샘플 ===")
+print(filtered_data[['번호', '주소', 'deposit', 'expected_time']].head())
+print("\n=== 필터링 조건 ===")
+print(f"최대 보증금: {max_deposit}만원")
+print(f"최대 통근시간: {max_time}분")
+
+if filtered_data.empty:
+    st.warning("필터링 조건에 맞는 데이터가 없습니다. 필터 설정을 조정해주세요.")
+else:
+    # 필터링된 건물 수 표시
+    st.info(f"조건에 맞는 건물: {len(filtered_data)}개")
     
-    # 데이터 필터링
-    filtered_data = final[
-        (final['deposit'] <= max_deposit) & 
-        (final['expected_time'] <= max_time)
-    ]
+    # 지도 중심점 계산
+    lat_center = filtered_data.x.mean()
+    lon_center = filtered_data.y.mean()
     
-    # 디버깅을 위한 데이터 출력
-    print("\n=== 필터링된 데이터 정보 ===")
-    print(f"전체 데이터 수: {len(final)}")
-    print(f"필터링된 데이터 수: {len(filtered_data)}")
-    print("\n=== 필터링된 데이터 샘플 ===")
-    print(filtered_data[['번호', '주소', 'deposit', 'expected_time']].head())
-    print("\n=== 필터링 조건 ===")
-    print(f"최대 보증금: {max_deposit}만원")
-    print(f"최대 통근시간: {max_time}분")
+    # 색상 스케일 생성
+    if color_column in filtered_data.columns:
+        min_val = filtered_data[color_column].min()
+        max_val = filtered_data[color_column].max()
+        
+        # 색상맵 생성 (낮은 값은 파란색, 높은 값은 빨간색)
+        if color_column == 'deposit' or color_column == 'deposit_m2' or color_column == '신청자수':
+            colormap = cm.LinearColormap(
+                colors=['blue', 'green', 'yellow', 'red'],
+                vmin=min_val,
+                vmax=max_val
+            )
+        else:  # 거리는 가까울수록 좋으므로 반대 색상
+            colormap = cm.LinearColormap(
+                colors=['red', 'yellow', 'green', 'blue'],
+                vmin=min_val,
+                vmax=max_val
+            )
     
     # 지도 생성
-    fig = go.Figure()
-    
-    # 건물 마커 추가
-    fig.add_trace(go.Scattermapbox(
-        lat=filtered_data.x,
-        lon=filtered_data.y,
-        mode='markers+text',
-        marker=go.scattermapbox.Marker(
-            size=20,
-            color=filtered_data[color_column],
-            colorscale='Viridis_r',
-            showscale=True
-        ),
-        text=filtered_data['번호'].astype(str),
-        hovertext=filtered_data.apply(
-            lambda row: (
-                f"<b>번호: {row['번호']}</b><br>"
-                f"주소: {row['주소']}<br><br>"
-                f"가장 가까운 역: {row['near_station']}"
-            ), axis=1
-        ),
-        hoverinfo='text'
-    ))
-    
-    # 데이터의 경계값 계산
-    lat_center = (filtered_data.x.max() + filtered_data.x.min()) / 2
-    lon_center = (filtered_data.y.max() + filtered_data.y.min()) / 2
-    
-    # 경도값을 오른쪽으로 조정 (0.02 정도 더해줌)
-    lon_center += 0.25
-    
-    # 지도 레이아웃 설정
-    fig.update_layout(
-        mapbox=dict(
-            style=map_style,
-            zoom=9,
-            center=dict(
-                lat=lat_center,
-                lon=lon_center  # 조정된 경도값 적용
-            )
-        ),
-        margin={"r":0,"t":0,"l":0,"b":0},
-        height=400,
-        width=1000,
-        autosize=False
+    m = folium.Map(
+        location=[lat_center, lon_center],
+        zoom_start=12,
+        tiles=map_style
     )
     
-    # plotly_events 설정
-    selected_point = plotly_events(
-        fig, 
-        click_event=True,
-        override_width="100%"
-    )
-
-with col2:
-    st.subheader("건물 상세 정보")
+    # 마커 및 색상 범례 추가
+    if color_column in filtered_data.columns:
+        colormap.caption = {
+            'deposit': '보증금 (만원)',
+            'distanceM_near_station': '인접역까지 거리 (m)',
+            '신청자수': '신청자수 (명)',
+            'deposit_m2': 'm2당 보증금'
+        }[color_column]
+        colormap.add_to(m)
     
-    # 클릭된 포인트가 있으면 해당 정보 표시
-    if selected_point:
-        # 클릭된 포인트의 인덱스로 데이터 접근
-        point_idx = selected_point[0]['pointIndex']
-        selected_row = filtered_data.iloc[point_idx]
+    # 마커 추가
+    for idx, row in filtered_data.iterrows():
+        # 색상 결정
+        if color_column in row and min_val != max_val:
+            color_val = row[color_column]
+            marker_color = colormap(color_val)
+        else:
+            marker_color = 'blue'
         
-        # 건물 상세 정보
-        st.write(f"번호: {selected_row['번호']}")
-        st.write(f"주소: {selected_row['주소']}")
-        st.write(f"주택유형: {selected_row['주택유형']}")
-        st.write(f"전용면적: {round(selected_row['m2'] / 3.30579, 1)}평")
-        st.write(f"보증금: {int(selected_row['deposit'])}만원")
-        st.write(f"가장 가까운 역까지 거리: {selected_row['near_station']}까지 {int(selected_row['distanceM_near_station'])}m")
-        st.write(f"회사까지 예상 소요 시간: {round(selected_row['expected_time'], 1)}분")
-        st.write(f"신청자수: {selected_row['신청자수']}명")
-        st.markdown(f"[로드뷰 보기](https://map.kakao.com/link/roadview/{selected_row['x']},{selected_row['y']})")
-    else:
-        st.write("지도에서 건물을 선택해주세요.")
+        # 팝업 내용 만들기 - 상세 정보 모두 포함
+        popup_html = f"""
+        <div style='width:300px; max-height:250px; overflow-y:auto;'>
+            <h4 style='margin-top:0; margin-bottom:10px;'>건물 상세 정보</h4>
+            <table style='width:100%; border-collapse:collapse;'>
+                <tr><td><b>번호:</b></td><td>{row['번호']}</td></tr>
+                <tr><td><b>주소:</b></td><td>{row['주소']}</td></tr>
+                <tr><td><b>주택유형:</b></td><td>{row['주택유형']}</td></tr>
+                <tr><td><b>전용면적:</b></td><td>{round(row['m2'] / 3.30579, 1)}평</td></tr>
+                <tr><td><b>보증금:</b></td><td>{int(row['deposit'])}만원</td></tr>
+                <tr><td><b>m2당 보증금:</b></td><td>{int(row['deposit_m2'])}만원</td></tr>
+                <tr><td><b>최근역:</b></td><td>{row['near_station']}</td></tr>
+                <tr><td><b>역까지 거리:</b></td><td>{int(row['distanceM_near_station'])}m</td></tr>
+                <tr><td><b>통근시간:</b></td><td>{round(row['expected_time'], 1)}분</td></tr>
+                <tr><td><b>신청자수:</b></td><td>{row['신청자수']}명</td></tr>
+            </table>
+            <div style='margin-top:10px;'>
+                <a href='https://map.kakao.com/link/roadview/{row['x']},{row['y']}' target='_blank'>
+                    카카오맵 로드뷰 보기
+                </a>
+            </div>
+        </div>
+        """
+        popup = folium.Popup(popup_html, max_width=300)
+        
+        # 마커 추가
+        folium.CircleMarker(
+            location=[row['x'], row['y']],
+            radius=8,
+            popup=popup,
+            tooltip=f"번호: {row['번호']} | 보증금: {int(row['deposit'])}만원",
+            color='black',
+            fill=True,
+            fill_color=marker_color,
+            fill_opacity=0.7,
+            weight=1
+        ).add_to(m)
+    
+    # 지도 표시
+    st_folium(m, width="100%", height=700)
