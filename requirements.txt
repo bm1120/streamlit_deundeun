@@ -4,5 +4,7 @@ folium
 streamlit_folium
 numpy
 pandas
-plotly
-streamlit-plotly-events
+Pillow 
+langchain 
+langchain_google_genai 
+langchain_openai
