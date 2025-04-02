@@ -66,10 +66,10 @@ with st.sidebar:
         index=3
     )
     
-    map_style = st.radio(
+    map_style = st.selectbox(
         "지도 스타일",
-        options=['open-street-map', 'carto-positron', 
-                'carto-darkmatter', 'stamen-terrain']
+        options=['OpenStreetMap', 'Stamen Terrain', 'Stamen Toner', 'CartoDB positron', 'CartoDB dark_matter'],
+        index=0
     )
 
 # 전체 화면에 지도 표시
@@ -124,7 +124,14 @@ else:
     m = folium.Map(
         location=[lat_center, lon_center],
         zoom_start=11,
-        tiles=map_style
+        tiles=map_style,
+        attr={
+            'OpenStreetMap': '© OpenStreetMap contributors',
+            'Stamen Terrain': '© OpenStreetMap contributors, © Stamen Design',
+            'Stamen Toner': '© OpenStreetMap contributors, © Stamen Design',
+            'CartoDB positron': '© OpenStreetMap contributors, © CartoDB',
+            'CartoDB dark_matter': '© OpenStreetMap contributors, © CartoDB'
+        }[map_style]
     )
     
     # 마커 및 색상 범례 추가
@@ -148,7 +155,7 @@ else:
         
         # 팝업 내용 만들기 - 상세 정보 모두 포함
         popup_html = f"""
-        <div style='width:300px; max-height:250px; overflow-y:auto;'>
+        <div style='width:300px; max-height:400px; overflow-y:auto;'>
             <h4 style='margin-top:0; margin-bottom:10px;'>건물 상세 정보</h4>
             <table style='width:100%; border-collapse:collapse;'>
                 <tr><td style='width:120px;'><b>번호:</b></td><td>{row['번호']}</td></tr>
@@ -165,6 +172,11 @@ else:
             <div style='margin-top:10px;'>
                 <a href='https://map.kakao.com/link/roadview/{row['x']},{row['y']}' target='_blank'>
                     카카오맵 로드뷰 보기
+                </a>
+            </div>
+            <div style='margin-top:10px;'>
+                <a href='{row['img']}' target='_blank'>
+                    구조도 보기
                 </a>
             </div>
         </div>
