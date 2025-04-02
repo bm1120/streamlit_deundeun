@@ -61,7 +61,7 @@ with st.sidebar:
             '신청자수': '신청자수',
             'deposit_m2': 'm2당 보증금'
         }[x],
-        index=0
+        index=2
     )
     
     map_style = st.selectbox(
@@ -96,8 +96,8 @@ else:
     st.info(f"조건에 맞는 건물: {len(filtered_data)}개")
     
     # 지도 중심점 계산
-    lat_center = filtered_data.x.mean()
-    lon_center = filtered_data.y.mean()
+    lat_center = (filtered_data.x.max() + filtered_data.x.min()) / 2
+    lon_center = (filtered_data.y.max() + filtered_data.y.min()) / 2
     
     # 색상 스케일 생성
     if color_column in filtered_data.columns:
@@ -114,7 +114,7 @@ else:
     # 지도 생성
     m = folium.Map(
         location=[lat_center, lon_center],
-        zoom_start=12,
+        zoom_start=11,
         tiles=map_style
     )
     
@@ -141,14 +141,14 @@ else:
         <div style='width:300px; max-height:250px; overflow-y:auto;'>
             <h4 style='margin-top:0; margin-bottom:10px;'>건물 상세 정보</h4>
             <table style='width:100%; border-collapse:collapse;'>
-                <tr><td><b>번호:</b></td><td>{row['번호']}</td></tr>
-                <tr><td><b>주소:</b></td><td>{row['주소']}</td></tr>
-                <tr><td><b>주택유형:</b></td><td>{row['주택유형']}</td></tr>
-                <tr><td><b>전용면적:</b></td><td>{round(row['m2'] / 3.30579, 1)}평</td></tr>
-                <tr><td><b>보증금:</b></td><td>{int(row['deposit'])}만원</td></tr>
-                <tr><td><b>m2당 보증금:</b></td><td>{int(row['deposit_m2'])}만원</td></tr>
-                <tr><td><b>예상통근시간:</b></td><td>{round(row['expected_time'], 1)}분</td></tr>
-                <tr><td><b>신청자수:</b></td><td>{row['신청자수']}명</td></tr>
+                <tr><td style='width:120px;'><b>번호:</b></td><td>{row['번호']}</td></tr>
+                <tr><td style='width:120px;'><b>주소:</b></td><td>{row['주소']}</td></tr>
+                <tr><td style='width:120px;'><b>주택유형:</b></td><td>{row['주택유형']}</td></tr>
+                <tr><td style='width:120px;'><b>전용면적:</b></td><td>{round(row['m2'] / 3.30579, 1)}평</td></tr>
+                <tr><td style='width:120px;'><b>보증금:</b></td><td>{int(row['deposit'])}만원</td></tr>
+                <tr><td style='width:120px;'><b>m2당 보증금:</b></td><td>{int(row['deposit_m2'])}만원</td></tr>
+                <tr><td style='width:120px;'><b>예상통근시간:</b></td><td>{round(row['expected_time'], 1)}분</td></tr>
+                <tr><td style='width:120px;'><b>신청자수:</b></td><td>{row['신청자수']}명</td></tr>
             </table>
             <div style='margin-top:10px;'>
                 <a href='https://map.kakao.com/link/roadview/{row['x']},{row['y']}' target='_blank'>
@@ -173,4 +173,4 @@ else:
         ).add_to(m)
     
     # 지도 표시
-    st_folium(m, width="100%", height=700)
+    st_folium(m, width="100%", height=700, returned_objects=[])
