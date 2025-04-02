@@ -54,20 +54,22 @@ with st.sidebar:
     color_column = st.selectbox(
         "건물 표시색상",
         options=[
-            'deposit', '신청자수', 'deposit_m2'
+            'deposit', 'distanceM_near_station', 
+            '신청자수', 'deposit_m2'
         ],
         format_func=lambda x: {
             'deposit': '보증금',
+            'distanceM_near_station': '인접역까지 거리',
             '신청자수': '신청자수',
             'deposit_m2': 'm2당 보증금'
         }[x],
-        index=2
+        index=3
     )
     
-    map_style = st.selectbox(
+    map_style = st.radio(
         "지도 스타일",
-        options=['OpenStreetMap', 'Stamen Terrain', 'Stamen Toner', 'CartoDB positron', 'CartoDB dark_matter'],
-        index=0
+        options=['open-street-map', 'carto-positron', 
+                'carto-darkmatter', 'stamen-terrain']
     )
 
 # 전체 화면에 지도 표시
@@ -105,11 +107,18 @@ else:
         max_val = filtered_data[color_column].max()
         
         # 색상맵 생성 (낮은 값은 파란색, 높은 값은 빨간색)
-        colormap = cm.LinearColormap(
-            colors=['blue', 'green', 'yellow', 'red'],
-            vmin=min_val,
-            vmax=max_val
-        )
+        if color_column == 'deposit' or color_column == 'deposit_m2' or color_column == '신청자수':
+            colormap = cm.LinearColormap(
+                colors=['blue', 'green', 'yellow', 'red'],
+                vmin=min_val,
+                vmax=max_val
+            )
+        else:  # 거리는 가까울수록 좋으므로 반대 색상
+            colormap = cm.LinearColormap(
+                colors=['red', 'yellow', 'green', 'blue'],
+                vmin=min_val,
+                vmax=max_val
+            )
     
     # 지도 생성
     m = folium.Map(
@@ -122,6 +131,7 @@ else:
     if color_column in filtered_data.columns:
         colormap.caption = {
             'deposit': '보증금 (만원)',
+            'distanceM_near_station': '인접역까지 거리 (m)',
             '신청자수': '신청자수 (명)',
             'deposit_m2': 'm2당 보증금'
         }[color_column]
@@ -149,6 +159,8 @@ else:
                 <tr><td style='width:120px;'><b>m2당 보증금:</b></td><td>{int(row['deposit_m2'])}만원</td></tr>
                 <tr><td style='width:120px;'><b>예상통근시간:</b></td><td>{round(row['expected_time'], 1)}분</td></tr>
                 <tr><td style='width:120px;'><b>신청자수:</b></td><td>{row['신청자수']}명</td></tr>
+                <tr><td style='width:120px;'><b>인접역:</b></td><td>{row['near_station']}</td></tr>
+                <tr><td style='width:120px;'><b>인접역까지 거리:</b></td><td>{int(row['distanceM_near_station'])}m</td></tr>
             </table>
             <div style='margin-top:10px;'>
                 <a href='https://map.kakao.com/link/roadview/{row['x']},{row['y']}' target='_blank'>
