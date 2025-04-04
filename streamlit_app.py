@@ -51,6 +51,19 @@ with st.sidebar:
         step=5
     )
     
+    # 전용면적 범위 필터 추가
+    min_pyeong = st.number_input(
+        "최소 전용면적(평)",
+        min_value=float(final['m2'].min() / 3.30579),
+        max_value=float(final['m2'].max() / 3.30579),
+        value=float(final['m2'].min() / 3.30579),
+        step=1.0,
+        format="%.1f"
+    )
+    
+    # 평을 m2로 변환
+    min_area = min_pyeong * 3.30579
+    
     color_column = st.selectbox(
         "건물 표시색상",
         options=[
@@ -78,7 +91,8 @@ st.subheader("든든전세주택 위치 지도")
 # 데이터 필터링
 filtered_data = final[
     (final['deposit'] <= max_deposit) & 
-    (final['expected_time'] <= max_time)
+    (final['expected_time'] <= max_time) &
+    (final['m2'] >= min_area)
 ]
 
 # 디버깅을 위한 데이터 출력
@@ -86,10 +100,11 @@ print("\n=== 필터링된 데이터 정보 ===")
 print(f"전체 데이터 수: {len(final)}")
 print(f"필터링된 데이터 수: {len(filtered_data)}")
 print("\n=== 필터링된 데이터 샘플 ===")
-print(filtered_data[['번호', '주소', 'deposit', 'expected_time']].head())
+print(filtered_data[['번호', '주소', 'deposit', 'expected_time', 'm2']].head())
 print("\n=== 필터링 조건 ===")
 print(f"최대 보증금: {max_deposit}만원")
 print(f"최대 통근시간: {max_time}분")
+print(f"최소 전용면적: {min_pyeong}평 ({min_area:.1f}m²)")
 
 if filtered_data.empty:
     st.warning("필터링 조건에 맞는 데이터가 없습니다. 필터 설정을 조정해주세요.")
